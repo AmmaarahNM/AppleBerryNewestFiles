@@ -8,14 +8,19 @@ public class GameManager : MonoBehaviour
     public Image fedBar;
     public Image hydratedBar;
     public Image energyBar;
+    public Image healthBar;
 
     float fed = 100;
     float hydrated = 100;
     float energy = 100;
+    float health = 100;
 
     bool isEating;
     bool isResting;
     bool isDrinking;
+
+    bool isEatingMango;
+    public GameObject mangoDangerInfo;
 
     bool waterCollected;
     bool woodCollected;
@@ -139,6 +144,19 @@ public class GameManager : MonoBehaviour
     public bool chemSetOpen;
     public GameObject chemistrySet;
 
+    public GameObject eatApplePrompt;
+    public GameObject eatPlumPrompt;
+    public GameObject eatMangoPrompt;
+
+    public GameObject eatingAppleUI;
+    public GameObject eatingPlumUI;
+    public GameObject eatingMangoUI;
+
+    public Text numberOfLogsInv;
+    public Text numberOfApplesInv;
+    public Text numberOfPlumsInv;
+    public Text numberOfMangosInv;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -152,6 +170,11 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        numberOfLogsInv.text = numberOfLogs.ToString() + "/10";
+        numberOfApplesInv.text = numberOfApples.ToString() + "/3";
+        numberOfPlumsInv.text = numberOfPlums.ToString() + "/3";
+        numberOfMangosInv.text = numberOfMangos.ToString() + "/3";
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             gamePaused = true;
@@ -197,8 +220,26 @@ public class GameManager : MonoBehaviour
         }
         energyBar.fillAmount = energy / 100;
 
+        if (numberOfApples <= 0)
+        {
+            appleCollected = false;
+            appleInventory.SetActive(false);
+        }
 
-    /// CONDITION BARS INCREASING WITH ACTIONS (need to first activate these bools in-game)
+        if (numberOfPlums <= 0)
+        {
+            plumCollected = false;
+            plumInventory.SetActive(false);
+        }
+
+        if (numberOfMangos <= 0)
+        {
+            mangoCollected = false;
+            mangoInventory.SetActive(false);
+        }
+
+
+        /// CONDITION BARS INCREASING WITH ACTIONS (need to first activate these bools in-game)
         if (isEating && fed < 100)
         {
             fed += 2 * Time.deltaTime;
@@ -206,6 +247,13 @@ public class GameManager : MonoBehaviour
             //amountFed += 2 * Time.deltaTime;
             //set bool false once amountFed has reached desired value;
         }
+
+        if (isEatingMango)
+        {
+            health -= Time.deltaTime;
+        }
+
+        healthBar.fillAmount = health / 100;
 
 
         if (isDrinking && hydrated < 100)
@@ -543,7 +591,7 @@ public class GameManager : MonoBehaviour
             setUpLogsPrompt.SetActive(false);
         }
 
-        
+   
 
         /// PLAYER HAS RESOURCES UI
         hasWater.SetActive(waterCollected);
@@ -750,8 +798,7 @@ public class GameManager : MonoBehaviour
 
     public void ActivateChemSet()
     {
-        if (activateChemSet && waterCollected)
-        {
+        
             if (chemSetOpen)
             {
                 chemistrySet.SetActive(false);
@@ -765,8 +812,10 @@ public class GameManager : MonoBehaviour
                 controller.enabled = false;
                 chemSetOpen = true;
             }
+
+        CloseInventory();
             
-        }
+        
     }
 
     public void AxeCollection()
@@ -827,5 +876,77 @@ public class GameManager : MonoBehaviour
         }
 
         
+    }
+
+    public void EatApple()
+    {
+        eatApplePrompt.SetActive(false);
+        isEating = true;
+        CloseInventory();
+        controller.enabled = false;
+        eatingAppleUI.SetActive(true);
+        numberOfApples--;
+        //eating sound
+        StartCoroutine(StopEatingApple());
+        
+        
+
+    }
+
+    IEnumerator StopEatingApple()
+    {
+        yield return new WaitForSeconds(2);
+        isEating = false;
+        controller.enabled = true;
+        eatingAppleUI.SetActive(false);
+    }
+    public void EatPlum()
+    {
+        eatPlumPrompt.SetActive(false);
+        isEating = true;
+        CloseInventory();
+        controller.enabled = false;
+        eatingPlumUI.SetActive(true);
+        numberOfApples--;
+        //eating sound
+        StartCoroutine(StopEatingPlum());
+
+        
+
+    }
+
+
+    IEnumerator StopEatingPlum()
+    {
+        yield return new WaitForSeconds(2);
+        isEating = false;
+        controller.enabled = true;
+        eatingPlumUI.SetActive(false);
+    }
+    public void EatMango()
+    {
+        eatMangoPrompt.SetActive(false);
+        CloseInventory();
+        isEatingMango = true;
+        controller.enabled = false;
+        eatingMangoUI.SetActive(true);
+        numberOfMangos--;
+        //eating sound
+        StartCoroutine(StopEatingMango());
+
+        
+
+    }
+
+    IEnumerator StopEatingMango()
+    {
+        yield return new WaitForSeconds(1);
+        isEatingMango = false;
+        controller.enabled = true;
+        eatingMangoUI.SetActive(false);
+        mangoDangerInfo.SetActive(true);
+
+        yield return new WaitForSeconds(3);
+        mangoDangerInfo.SetActive(false);
     }
 }
